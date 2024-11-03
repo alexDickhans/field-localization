@@ -94,9 +94,8 @@ def main():
 
             final = coordinate_system.transform(np.array([x, y]))
 
-            # Print the coordinates of the largest blob before and after
-            print(f"Before: ({x}, {y})")
-            print(f"After: ({final[0]}, {final[1]})")
+            # send time in ms since program started, x, y, and final[0], final[1]
+            print(f"{time.time() - last_time * 1000},{x},{y},{final[0]},{final[1]}")
         else:
             print("None")
 
