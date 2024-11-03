@@ -92,11 +92,11 @@ def main():
             largest_blob = max(keypoints, key=lambda x: x.size)
             x, y = largest_blob.pt
 
-            coordinate_system.transform(np.array([x, y]))
+            final = coordinate_system.transform(np.array([x, y]))
 
             # Print the coordinates of the largest blob before and after
             print(f"Before: ({x}, {y})")
-            print(f"After: ({x}, {y})")
+            print(f"After: ({final[0]}, {final[1]})")
         else:
             print("None")
 
