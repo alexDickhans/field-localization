@@ -3,6 +3,11 @@ import time
 
 import subprocess
 
+import numpy as np
+
+from matrix import coordinate_system
+
+
 def set_frame_rate(device, fps):
     try:
         # Set the frame rate using v4l2-ctl
@@ -81,6 +86,19 @@ def main():
         # cv2.imshow('Original Frame', frame)
         cv2.imshow('Binary Frame', inverted_binary_frame)
         cv2.imshow('Blobs', frame_with_blobs)
+
+        # Calculate the position using matrix.py for the largest blob
+        if len(keypoints) > 0:
+            largest_blob = max(keypoints, key=lambda x: x.size)
+            x, y = largest_blob.pt
+
+            coordinate_system.transform(np.array([x, y]))
+
+            # Print the coordinates of the largest blob before and after
+            print(f"Before: ({x}, {y})")
+            print(f"After: ({x}, {y})")
+        else:
+            print("None")
 
         # Break the loop when 'q' key is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
