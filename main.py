@@ -95,9 +95,8 @@ def main():
             final = coordinate_system.transform(np.array([x, y]))
 
             # send time in ms since program started, x, y, and final[0], final[1]
-            print(f"{(time.time() - last_time) * 1000},{x},{y},{final[0]},{final[1]}")
-        else:
-            print("None")
+            # print(f"{(time.time() - last_time) * 1000},{x},{y},{final[0]},{final[1]}")
+        print(len(keypoints))
 
         # Break the loop when 'q' key is pressed
         if cv2.waitKey(1) & 0xFF == ord('q'):
