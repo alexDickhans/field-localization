@@ -45,8 +45,8 @@ def main():
 
     # Set the parameters for blob detection
     params.filterByArea = True
-    params.minArea = 0.0
-    params.maxArea = 300.0
+    params.minArea = 30.0
+    params.maxArea = 100.0
     params.filterByCircularity = True
     params.minCircularity = 0.8
     params.filterByConvexity = True
