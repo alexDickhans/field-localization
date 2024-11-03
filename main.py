@@ -45,12 +45,12 @@ def main():
 
     # Set the parameters for blob detection
     params.filterByArea = True
-    params.minArea = 30.0
-    params.maxArea = 100.0
+    params.minArea = 0.0
+    params.maxArea = 300.0
     params.filterByCircularity = True
-    params.minCircularity = 0.82
+    params.minCircularity = 0.5
     params.filterByConvexity = True
-    params.minConvexity = 0.9
+    params.minConvexity = 0.4
     params.filterByInertia = False
 
     detector = cv2.SimpleBlobDetector_create(params)
