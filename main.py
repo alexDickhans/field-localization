@@ -80,12 +80,12 @@ def main():
         keypoints = detector.detect(inverted_binary_frame)
 
         # Draw keypoints on the original frame
-        frame_with_blobs = cv2.drawKeypoints(frame, keypoints, None, (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        # frame_with_blobs = cv2.drawKeypoints(frame, keypoints, None, (0, 255, 0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
         # Display the original frame and binary frame
         # cv2.imshow('Original Frame', frame)
-        cv2.imshow('Binary Frame', inverted_binary_frame)
-        cv2.imshow('Blobs', frame_with_blobs)
+        # cv2.imshow('Binary Frame', inverted_binary_frame)
+        # cv2.imshow('Blobs', frame_with_blobs)
 
         # Calculate the position using matrix.py for the largest blob
         if len(keypoints) > 0:
@@ -106,7 +106,7 @@ def main():
 
     # Release the capture and close all OpenCV windows
     cap.release()
-    cv2.destroyAllWindows()
+    # cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
