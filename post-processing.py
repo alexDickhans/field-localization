@@ -5,8 +5,6 @@ import sys
 import cv2
 import time
 
-import subprocess
-
 import numpy as np
 
 from matrix import coordinate_system, CoordinateSystem
@@ -55,6 +53,13 @@ if __name__ == "__main__":
     fps = cap.get(cv2.CAP_PROP_FPS)
     print(f"Framerate: {fps} frames per second")
 
+    # Get the total number of frames in the video
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    processed_frames = 0
+
+    # List to store x/y time data
+    xy_time_data = []
+
     # display the video
     frame_count = 0
     while True:
@@ -62,6 +67,9 @@ if __name__ == "__main__":
         if not ret:
             break
         frame_count += 1
+
+        # if (frame_count > 240):
+        #     break
 
         # Undistort the frame using the calibration data
         frame = cv2.undistort(frame, mtx, dist, None, mtx)
@@ -84,11 +92,24 @@ if __name__ == "__main__":
             smallest_blob = min(keypoints, key=lambda x: x.size)
             x, y = smallest_blob.pt
             result = coordinate_system.transform(np.array([x, y])) * 70.205
-            cv2.putText(frame, f" time: {frame_count / fps}, ({result[0]:.2f}, {result[1]:.2f})", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            time_stamp = frame_count / fps
+            xy_time_data.append({"time": time_stamp, "x": result[0], "y": result[1]})
+            cv2.putText(frame, f" time: {time_stamp}, ({result[0]:.2f}, {result[1]:.2f})", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-        cv2.imshow('frame', frame)
+        # Update and print the percentage done
+        processed_frames += 1
+        percent_done = (processed_frames / total_frames) * 100
+        print(f"Processing: {percent_done:.2f}% done")
+
+        # cv2.imshow('frame', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
     cap.release()
     cv2.destroyAllWindows()
+
+    # Save x/y time data to JSON file
+    with open('xy_time_data.json', 'w') as json_file:
+        json.dump(xy_time_data, json_file, indent=4)
+
+    print("x/y time data saved to 'xy_time_data.json'.")
