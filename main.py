@@ -45,7 +45,7 @@ def main():
 
     # Set the parameters for blob detection
     params.filterByArea = True
-    params.minArea = 30.0
+    params.minArea = 0.0
     params.maxArea = 100.0
     params.filterByCircularity = True
     params.minCircularity = 0.8
@@ -70,7 +70,7 @@ def main():
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Apply binary thresholding
-        threshold_value = 150
+        threshold_value = 250
         max_value = 255
         _, binary_frame = cv2.threshold(gray_frame, threshold_value, max_value, cv2.THRESH_BINARY)
 

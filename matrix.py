@@ -9,9 +9,13 @@ class CoordinateSystem:
         # Initialize the matrix as a NumPy array
         self.matrix = np.array(data["matrix"])
 
+    def inverse(self, input_vector):
+        final = self.matrix @ input_vector
+        return final + self.origin
+
     def transform(self, input_vector):
         translated = input_vector - self.origin
-        final = np.dot(np.linalg.inv(self.matrix), translated)
+        final = np.linalg.inv(self.matrix) @ translated
         return final
 
     def __repr__(self):
@@ -30,5 +34,7 @@ if __name__ == "__main__":
 
     # Transform the input vector using the member function
     result = coordinate_system.transform(input_vector)
+
+    print(coordinate_system)
 
     print(result)
