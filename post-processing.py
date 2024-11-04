@@ -52,6 +52,9 @@ if __name__ == "__main__":
 
     detector = cv2.SimpleBlobDetector_create(params)
 
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    print(f"Framerate: {fps} frames per second")
+
     # display the video
     frame_count = 0
     while True:
@@ -59,8 +62,6 @@ if __name__ == "__main__":
         if not ret:
             break
         frame_count += 1
-        if (frame_count % 16 != 0):
-            continue
 
         # Undistort the frame using the calibration data
         frame = cv2.undistort(frame, mtx, dist, None, mtx)
@@ -78,17 +79,12 @@ if __name__ == "__main__":
         # Draw the keypoints on the frame
         frame = cv2.drawKeypoints(frame, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-        position = coordinate_system.inverse([0, math.cos(time.time())])
-
-        # Draw the origin on the frame
-        cv2.circle(frame, (int(position[0]), int(position[1])), 5, (0, 255, 0), -1)
-
         # Calculate the position using matrix.py for the smallest blob
         if len(keypoints) > 0:
             smallest_blob = min(keypoints, key=lambda x: x.size)
             x, y = smallest_blob.pt
-            result = coordinate_system.transform(np.array([x, y]))
-            cv2.putText(frame, f"({result[0]:.2f}, {result[1]:.2f})", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            result = coordinate_system.transform(np.array([x, y])) * 70.205
+            cv2.putText(frame, f" time: {frame_count / fps}, ({result[0]:.2f}, {result[1]:.2f})", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         cv2.imshow('frame', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
