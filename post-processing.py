@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # Set the parameters for blob detection
     params.filterByArea = False
-    params.maxArea = 100.0
+    params.maxArea = 80.0
     params.filterByCircularity = False
     params.minCircularity = 0.8
     params.filterByConvexity = False
@@ -65,17 +65,19 @@ if __name__ == "__main__":
     while True:
         ret, frame = cap.read()
         if not ret:
+            print("not ret")
             break
+
         frame_count += 1
 
-        # if (frame_count > 240):
-        #     break
+        if (frame_count % 4 != 0):
+            continue
 
         # Undistort the frame using the calibration data
         frame = cv2.undistort(frame, mtx, dist, None, mtx)
 
         # Apply binary thresholding
-        threshold_value = 220
+        threshold_value = 20
         max_value = 255
         _, binary_frame = cv2.threshold(frame, threshold_value, max_value, cv2.THRESH_BINARY)
 
@@ -84,17 +86,25 @@ if __name__ == "__main__":
         # Detect blobs in the frame
         keypoints = detector.detect(inverted_binary_frame)
 
+        # Brighten the frame
+        frame = cv2.multiply(frame, np.full(frame.shape, 5, dtype=np.uint8))
+
         # Draw the keypoints on the frame
         frame = cv2.drawKeypoints(frame, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+        time_stamp = frame_count / fps
 
-        # Calculate the position using matrix.py for the smallest blob
+        # Calculate the position using matrix.py for each blob
         if len(keypoints) > 0:
-            smallest_blob = min(keypoints, key=lambda x: x.size)
-            x, y = smallest_blob.pt
-            result = coordinate_system.transform(np.array([x, y])) * 70.205
-            time_stamp = frame_count / fps
-            xy_time_data.append({"time": time_stamp, "x": result[0], "y": result[1]})
-            cv2.putText(frame, f" time: {time_stamp}, ({result[0]:.2f}, {result[1]:.2f})", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            keypoint_data = []
+            for keypoint in keypoints:
+                x, y = keypoint.pt
+                result = coordinate_system.transform(np.array([x, y]))
+                keypoint_data.append({"x": result[0], "y": result[1], "t": None})
+                cv2.putText(frame, f"({result[0]:.2f}, {result[1]:.2f})", (int(x), int(y)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            xy_time_data.append({"time": time_stamp, "data": keypoint_data})
+        else:
+            # append nothing
+            xy_time_data.append({"time": time_stamp, "data": []})
 
         # Update and print the percentage done
         processed_frames += 1
@@ -110,6 +120,6 @@ if __name__ == "__main__":
 
     # Save x/y time data to JSON file
     with open('xy_time_data.json', 'w') as json_file:
-        json.dump(xy_time_data, json_file, indent=4)
+        json.dump({"data": xy_time_data}, json_file, indent=4)
 
     print("x/y time data saved to 'xy_time_data.json'.")

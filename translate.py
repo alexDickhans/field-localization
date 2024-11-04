@@ -21,8 +21,8 @@ def main():
 
     config = {
         "origin": origin,
-        "matrix": [[x_point["x"] - origin["x"], y_point["x"] - origin["x"]],
-                   [x_point["y"] - origin["y"], y_point["y"] - origin["y"]]]
+        "matrix": [[(x_point["x"] - origin["x"]) / 1.783207, (y_point["x"] - origin["x"]) / 1.783207],
+                   [(x_point["y"] - origin["y"]) / 1.783207, (y_point["y"] - origin["y"]) / 1.783207]]
     }
 
     with open('config.json', 'w') as file:
