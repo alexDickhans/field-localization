@@ -3,6 +3,7 @@ from symbol import continue_stmt
 
 import sseclient
 import requests
+import sys
 
 # URL of the SSE endpoint
 sse_url = 'http://192.168.4.1/uart0'
@@ -48,10 +49,14 @@ def process_sse_data():
         print("Cntl+C, exiting")
 
     # Save x/y time data to JSON file
-    with open('xy_time_data2.json', 'w') as json_file:
+    fileName = 'xy_time_data.json'
+    if len(sys.argv) > 1:
+        fileName = sys.argv[1]
+
+    with open(fileName, 'w') as json_file:
         json.dump({"data": xy_time_data}, json_file, indent=4)
 
-    print("x/y time data saved to 'xy_time_data.json'.")
+    print(f"x/y time data saved to '{fileName}'.")
 
 if __name__ == "__main__":
     process_sse_data()
