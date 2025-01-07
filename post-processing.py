@@ -3,6 +3,7 @@ import numpy as np
 import json
 import argparse
 from concurrent.futures import ThreadPoolExecutor
+import os
 
 pointData = []
 
@@ -66,9 +67,9 @@ def process_frame(frame, frame_count, fps, map1, map2, H):
 
 # Parse command-line arguments
 parser = argparse.ArgumentParser(description="Undistort and apply homography to a video.")
+parser.add_argument("--calibration_file", type=str, default=os.path.join(os.path.dirname(__file__), 'calibration_data.npz'), help="Path to the .npz file containing calibration data.")
+parser.add_argument("--homography_file", type=str, default=os.path.join(os.path.dirname(__file__), 'homo.npz'), help="Path to the .npz file containing homography matrix.")
 parser.add_argument("video_path", type=str, help="Path to the video file.")
-parser.add_argument("calibration_file", type=str, help="Path to the .npz file containing calibration data.")
-parser.add_argument("homography_file", type=str, help="Path to the .npz file containing homography matrix.")
 args = parser.parse_args()
 
 # Load the calibration data
