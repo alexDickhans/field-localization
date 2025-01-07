@@ -36,10 +36,10 @@ def detect_bright_objects(frame, frame_count):
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     if len(contours) > 0:
-        x, y, _, _ = cv2.boundingRect(contours[0])
+        x, y, w, h = cv2.boundingRect(contours[0])
 
-        x_transformed = x - 1000
-        y_transformed = y - 1000
+        x_transformed = (x + w/2) - 1000
+        y_transformed = (y + h/2) - 1000
 
         x_final = x_transformed * 1.783207 / 1000
         y_final = y_transformed * -1.783207 / 1000
@@ -119,7 +119,7 @@ while True:
     out.write(warped_frame_with_contours)
 
     # Display the processed frame
-    cv2.imshow("Processed Video", warped_frame)
+    # cv2.imshow("Processed Video", warped_frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
