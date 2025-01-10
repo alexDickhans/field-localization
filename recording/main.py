@@ -1,8 +1,5 @@
 import json
-from symbol import continue_stmt
-
 import sseclient
-import requests
 import sys
 
 # URL of the SSE endpoint
