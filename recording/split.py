@@ -14,11 +14,8 @@ if __name__ == "__main__":
             loc_data = []
             des_data = []
 
-            for item in data_point["data"]:
-                if item["t"] is None:
-                    loc_data.append({"x": item["x"], "y": item["y"]})
-                else:
-                    des_data.append({"x": item["x"], "y": item["y"], "t": item["t"]})
+            loc_data.append(data_point["data"][0])
+            des_data.append(data_point["data"][1])
 
             localization_data.append({"time": data_point["time"], "data": loc_data})
             desired_data.append({"time": data_point["time"], "data": des_data})
