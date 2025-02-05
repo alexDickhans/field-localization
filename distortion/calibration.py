@@ -38,9 +38,6 @@ while True:
 
     frame_count += 1
 
-    if frame_count % 2 != 0:
-        continue
-
     # Convert to grayscale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -52,8 +49,6 @@ while True:
         corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
         imgpoints.append(corners2)
         objpoints.append(objp)
-
-        print(type(objpoints))
 
         # Draw the corners on the frame for visualization
         frame_with_corners = cv2.drawChessboardCorners(frame, CHECKERBOARD, corners, ret)
@@ -68,12 +63,11 @@ while True:
     print(ret)
 
     # Show the frame (for debugging purposes)
-    # cv2.imshow("Video Frame", gray)
+    cv2.imshow("Video Frame", gray)
     if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to quit early
         break
 
 cap.release()
-
 cv2.destroyAllWindows()
 
 if len(objpoints) < 10:
@@ -146,9 +140,3 @@ while True:
     cv2.imshow("Undistorted Video", undistorted_img)
     if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to quit early
         break
-
-# Optional: Display results
-print("Camera Matrix (K):")
-print(K)
-print("\nDistortion Coefficients (D):")
-print(D)
