@@ -9,7 +9,7 @@ args = parser.parse_args()
 width = 2000
 
 # Four corners of the book in source image
-pts_src = np.array([[681, 293], [2138, 232], [687, 1697], [2143, 1741]])
+pts_src = np.array([[460,145], [1560, 110], [476, 1210], [1529, 1247]])
 
 # Read destination image.
 # Four corners of the book in destination image.
