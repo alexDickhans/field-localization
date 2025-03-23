@@ -2,11 +2,11 @@ import json
 import sys
 import math
 from concurrent.futures import ProcessPoolExecutor
-
 import matplotlib.pyplot as plt
 import asyncio
 import numpy as np
 from scipy.signal import savgol_filter
+import csv
 
 def read_json_file(file_path):
     with open(file_path, 'r') as file:
@@ -33,6 +33,7 @@ async def find_best_offset(data1, data2, max_offset, step=0.05):
     offsets = np.arange(-max_offset, max_offset + step, step)
     min_mse = float('inf')
     best_offset = 0
+    mse_values = []
 
     with ProcessPoolExecutor() as executor:
         loop = asyncio.get_event_loop()
@@ -40,15 +41,16 @@ async def find_best_offset(data1, data2, max_offset, step=0.05):
         results = await asyncio.gather(*tasks)
 
     for offset, mse in zip(offsets, results):
+        mse_values.append((offset, mse))
         if mse < min_mse:
             min_mse = mse
             best_offset = offset
 
     print(f"Best offset: {best_offset}, MSE: {min_mse}")
-    return best_offset
+    return best_offset, mse_values
 
 def plot_error_over_time(time_stamps, errors, label, color):
-    smoothed_errors = savgol_filter(errors, window_length=11, polyorder=2)
+    smoothed_errors = savgol_filter(errors, window_length=40, polyorder=2)
     plt.plot(time_stamps, smoothed_errors, label=label, color=color)
 
 def has_started_moving(data, threshold=0.05):
@@ -67,6 +69,7 @@ async def main():
     max_offset = 10  # Define the maximum offset to search
 
     colors = plt.get_cmap('tab10').colors
+    optimal_mse_values = []
 
     for i, (ground_truth_path, data1_path, data2_path) in enumerate(file_triplets):
         print(f"Processing triplet {i + 1}: {ground_truth_path}, {data1_path}, {data2_path}")
@@ -76,7 +79,14 @@ async def main():
 
         for j, (data, label, color) in enumerate([(data1, "Localization", colors[0]), (data2, "Exponential", colors[1])]):
             print(f"Processing {label} for triplet {i + 1}")
-            best_offset = await find_best_offset(ground_truth_data, data, max_offset)
+            best_offset, mse_values = await find_best_offset(ground_truth_data, data, max_offset)
+
+            # Print MSE values in CSV-like format
+            print(f"Offset,MSE ({label} - Trial {i + 1})")
+            for offset, mse in mse_values:
+                print(f"{offset},{mse}")
+
+            optimal_mse_values.append((f'Trial {i + 1} - {label}', best_offset, min(mse_values, key=lambda x: x[1])[1]))
 
             start_time = has_started_moving(ground_truth_data)
             if start_time is None:
@@ -95,6 +105,13 @@ async def main():
                 errors.append(error)
 
             plot_error_over_time(time_stamps, errors, label=f'Trial {i + 1} - {label}', color=color)
+
+    # Save optimal MSE values to a CSV file
+    with open('optimal_mse_values.csv', 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(['Trial', 'Best Offset', 'Optimal MSE'])
+        csvwriter.writerows(optimal_mse_values)
+
     plt.xlabel('Time')
     plt.ylabel('Error (Distance in meters)')
     plt.title('Error Over Time')
