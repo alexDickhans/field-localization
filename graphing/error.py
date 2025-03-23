@@ -49,6 +49,13 @@ async def find_best_offset(data1, data2, max_offset, step=0.05):
 def plot_error_over_time(time_stamps, errors, label):
     plt.plot(time_stamps, errors, label=label)
 
+def has_started_moving(data, threshold=0.05):
+    initial_position = data[0]["data"][0]
+    for point in data:
+        if calculate_distance(initial_position, point["data"][0]) > threshold:
+            return point["time"] - 0.5
+    return None
+
 async def main():
     if len(sys.argv) < 4 or len(sys.argv) % 3 != 1:
         print("Usage: python error.py <ground_truth1.json> <data1.json> <data2.json> [<ground_truth2.json> <data3.json> <data4.json> ...]")
@@ -67,17 +74,23 @@ async def main():
             print(f"Processing {label} for triplet {i + 1}")
             best_offset = await find_best_offset(ground_truth_data, data, max_offset)
 
+            start_time = has_started_moving(ground_truth_data)
+            if start_time is None:
+                print(f"Robot did not start moving in {ground_truth_path}")
+                continue
+
             time_stamps = []
             errors = []
 
             for point in ground_truth_data:
+                if point["time"] < start_time:
+                    continue
                 closest_point = find_closest_point(point["time"] + best_offset, data)
-                time_stamps.append(point["time"])
+                time_stamps.append(point["time"] - start_time)
                 error = calculate_distance(point["data"][0], closest_point["data"][0])
                 errors.append(error)
 
             plot_error_over_time(time_stamps, errors, label=f'Trial {i + 1} - {label}')
-
     plt.xlabel('Time')
     plt.ylabel('Error (Distance in meters)')
     plt.title('Error Over Time')
