@@ -6,6 +6,7 @@ from concurrent.futures import ProcessPoolExecutor
 import matplotlib.pyplot as plt
 import asyncio
 import numpy as np
+from scipy.signal import savgol_filter
 
 def read_json_file(file_path):
     with open(file_path, 'r') as file:
@@ -46,8 +47,9 @@ async def find_best_offset(data1, data2, max_offset, step=0.05):
     print(f"Best offset: {best_offset}, MSE: {min_mse}")
     return best_offset
 
-def plot_error_over_time(time_stamps, errors, label):
-    plt.plot(time_stamps, errors, label=label)
+def plot_error_over_time(time_stamps, errors, label, color):
+    smoothed_errors = savgol_filter(errors, window_length=11, polyorder=2)
+    plt.plot(time_stamps, smoothed_errors, label=label, color=color)
 
 def has_started_moving(data, threshold=0.05):
     initial_position = data[0]["data"][0]
@@ -64,13 +66,15 @@ async def main():
     file_triplets = [(sys.argv[i], sys.argv[i + 1], sys.argv[i + 2]) for i in range(1, len(sys.argv), 3)]
     max_offset = 10  # Define the maximum offset to search
 
+    colors = plt.get_cmap('tab10').colors
+
     for i, (ground_truth_path, data1_path, data2_path) in enumerate(file_triplets):
         print(f"Processing triplet {i + 1}: {ground_truth_path}, {data1_path}, {data2_path}")
         ground_truth_data = read_json_file(ground_truth_path)
         data1 = read_json_file(data1_path)
         data2 = read_json_file(data2_path)
 
-        for j, (data, label) in enumerate([(data1, "Localization"), (data2, "Exponential")]):
+        for j, (data, label, color) in enumerate([(data1, "Localization", colors[0]), (data2, "Exponential", colors[1])]):
             print(f"Processing {label} for triplet {i + 1}")
             best_offset = await find_best_offset(ground_truth_data, data, max_offset)
 
@@ -90,7 +94,7 @@ async def main():
                 error = calculate_distance(point["data"][0], closest_point["data"][0])
                 errors.append(error)
 
-            plot_error_over_time(time_stamps, errors, label=f'Trial {i + 1} - {label}')
+            plot_error_over_time(time_stamps, errors, label=f'Trial {i + 1} - {label}', color=color)
     plt.xlabel('Time')
     plt.ylabel('Error (Distance in meters)')
     plt.title('Error Over Time')
