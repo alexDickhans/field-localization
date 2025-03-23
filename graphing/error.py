@@ -1,7 +1,7 @@
 import json
 import sys
 import math
-from concurrent.futures.process import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 
 import matplotlib.pyplot as plt
 import asyncio
@@ -12,11 +12,12 @@ def read_json_file(file_path):
         return json.load(file)["data"]
 
 def calculate_distance(point1, point2):
-    return math.sqrt((point1["x"] - point2["x"])**2 + (point1["y"] - point2["y"])**2)
+    return np.sqrt((point1["x"] - point2["x"])**2 + (point1["y"] - point2["y"])**2)
 
 def find_closest_point(time, data):
-    closest_point = min(data, key=lambda x: abs(x["time"] - time))
-    return closest_point
+    times = np.array([point["time"] for point in data])
+    closest_index = np.argmin(np.abs(times - time))
+    return data[closest_index]
 
 def calculate_mse(data1, data2, offset):
     errors = []
@@ -24,28 +25,25 @@ def calculate_mse(data1, data2, offset):
         closest_point2 = find_closest_point(point1["time"] + offset, data2)
         error = calculate_distance(point1["data"][0], closest_point2["data"][0])
         errors.append(error**2)
-    mse = sum(errors) / len(errors)
+    mse = np.mean(errors)
     return mse
 
 async def find_best_offset(data1, data2, max_offset, step=0.05):
-    best_offset = 0
-    min_mse = float('inf')
     offsets = np.arange(-max_offset, max_offset + step, step)
+    min_mse = float('inf')
+    best_offset = 0
 
-    with ProcessPoolExecutor(max_workers=14) as executor:  # Specify the number of workers
+    with ProcessPoolExecutor() as executor:
         loop = asyncio.get_event_loop()
-        tasks = [
-            loop.run_in_executor(executor, calculate_mse, data1, data2, offset)
-            for offset in offsets
-        ]
+        tasks = [loop.run_in_executor(executor, calculate_mse, data1, data2, offset) for offset in offsets]
         results = await asyncio.gather(*tasks)
 
     for offset, mse in zip(offsets, results):
-        print(f"Processing offset: {offset}")
         if mse < min_mse:
             min_mse = mse
             best_offset = offset
 
+    print(f"Best offset: {best_offset}, MSE: {min_mse}")
     return best_offset
 
 def plot_error_over_time(time_stamps, errors, label):
