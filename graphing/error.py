@@ -52,36 +52,36 @@ def plot_error_over_time(time_stamps, errors, label):
     plt.plot(time_stamps, errors, label=label)
 
 async def main():
-    if len(sys.argv) != 4:
-        print("Usage: python error.py <ground_truth.json> <file1.json> <file2.json>")
+    if len(sys.argv) < 4 or len(sys.argv) % 3 != 1:
+        print("Usage: python error.py <ground_truth1.json> <data1.json> <data2.json> [<ground_truth2.json> <data3.json> <data4.json> ...]")
         sys.exit(1)
 
-    ground_truth_path = sys.argv[1]
-    file1_path = sys.argv[2]
-    file2_path = sys.argv[3]
+    file_triplets = [(sys.argv[i], sys.argv[i + 1], sys.argv[i + 2]) for i in range(1, len(sys.argv), 3)]
     max_offset = 10  # Define the maximum offset to search
 
-    ground_truth_data = read_json_file(ground_truth_path)
-    file1_data = read_json_file(file1_path)
-    file2_data = read_json_file(file2_path)
+    for i, (ground_truth_path, data1_path, data2_path) in enumerate(file_triplets):
+        print(f"Processing triplet {i + 1}: {ground_truth_path}, {data1_path}, {data2_path}")
+        ground_truth_data = read_json_file(ground_truth_path)
+        data1 = read_json_file(data1_path)
+        data2 = read_json_file(data2_path)
 
-    for i, (data, label) in enumerate([(file1_data, "Localization"), (file2_data, "Exponential")]):
-        print(f"Processing {label}")
-        best_offset = await find_best_offset(ground_truth_data, data, max_offset)
+        for j, (data, label) in enumerate([(data1, "Localization"), (data2, "Exponential")]):
+            print(f"Processing {label} for triplet {i + 1}")
+            best_offset = await find_best_offset(ground_truth_data, data, max_offset)
 
-        time_stamps = []
-        errors = []
+            time_stamps = []
+            errors = []
 
-        for point in ground_truth_data:
-            closest_point = find_closest_point(point["time"] + best_offset, data)
-            time_stamps.append(point["time"])
-            error = calculate_distance(point["data"][0], closest_point["data"][0])
-            errors.append(error)
+            for point in ground_truth_data:
+                closest_point = find_closest_point(point["time"] + best_offset, data)
+                time_stamps.append(point["time"])
+                error = calculate_distance(point["data"][0], closest_point["data"][0])
+                errors.append(error)
 
-        plot_error_over_time(time_stamps, errors, label=label)
+            plot_error_over_time(time_stamps, errors, label=f'Trial {i + 1} - {label}')
 
     plt.xlabel('Time')
-    plt.ylabel('Error (Distance)')
+    plt.ylabel('Error (Distance in meters)')
     plt.title('Error Over Time')
     plt.legend()
     plt.grid(True)
